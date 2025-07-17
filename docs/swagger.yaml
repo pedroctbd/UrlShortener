@@ -1,0 +1,68 @@
+basePath: /
+definitions:
+  entities.ShortenedUrl:
+    properties:
+      created_at:
+        type: string
+      original:
+        type: string
+      short:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Redirects user to the original URL based on the shortened one
+      produces:
+      - text/plain
+      responses:
+        "301":
+          description: Redirects to original URL
+      summary: Redirect to original URL
+      tags:
+      - urls
+    post:
+      consumes:
+      - application/json
+      description: Accepts a JSON payload to create a new shortened URL
+      parameters:
+      - description: URL info
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/entities.ShortenedUrl'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/entities.ShortenedUrl'
+            type: array
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a shortened URL
+      tags:
+      - urls
+swagger: "2.0"
