@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 
 	"shorturl.com/entities"
@@ -19,7 +21,7 @@ import (
 // @Failure      400  {string}  string  "Invalid request payload"
 // @Failure      500  {string}  string  "Internal server error"
 // @Router       / [post]
-func CreateUrl() http.HandlerFunc {
+func CreateUrl(db *sql.DB) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -39,6 +41,19 @@ func CreateUrl() http.HandlerFunc {
 }
 
 // RedirectUrl godoc
+// @Summary      Return existing url shortners
+// @Description  Return existing url shortners
+// @Tags         urls
+// @Produce      plain
+// @Success      200  "Returns existing shortened urls"
+// @Router       / [get]
+func ListExistingUrls(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+// RedirectUrl godoc
 // @Summary      Redirect to original URL
 // @Description  Redirects user to the original URL based on the shortened one
 // @Tags         urls
@@ -47,11 +62,11 @@ func CreateUrl() http.HandlerFunc {
 // @Router       / [get]
 func RedirectUrl() http.HandlerFunc {
 
+	fmt.Println("entered here")
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		//postgres to get original url from db
-
-		http.Redirect(w, r, "https://google.com", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "https://youtube.com", http.StatusPermanentRedirect)
 
 	}
 }
