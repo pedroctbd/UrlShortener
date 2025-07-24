@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
+        "/redirect": {
             "get": {
                 "description": "Redirects user to the original URL based on the shortened one",
                 "produces": [
@@ -39,9 +39,11 @@ const docTemplate = `{
                         "description": "Redirects to original URL"
                     }
                 }
-            },
+            }
+        },
+        "/url": {
             "post": {
-                "description": "Accepts a JSON payload to create a new shortened URL",
+                "description": "Takes an original URL and returns a shortened one",
                 "consumes": [
                     "application/json"
                 ],
@@ -51,15 +53,15 @@ const docTemplate = `{
                 "tags": [
                     "urls"
                 ],
-                "summary": "Create a shortened URL",
+                "summary": "Create a new shortened URL",
                 "parameters": [
                     {
-                        "description": "URL info",
-                        "name": "url",
+                        "description": "URL creation input",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entities.ShortenedUrl"
+                            "$ref": "#/definitions/entities.CreateURLInput"
                         }
                     }
                 ],
@@ -67,22 +69,93 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
+                            "$ref": "#/definitions/entities.URL"
+                        }
+                    }
+                }
+            }
+        },
+        "/urls": {
+            "get": {
+                "description": "Returns a list of all existing shortened URLs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "urls"
+                ],
+                "summary": "List all shortened URLs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.ShortenedUrl"
+                                "$ref": "#/definitions/entities.URL"
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
+                    }
+                }
+            }
+        },
+        "/user": {
+            "post": {
+                "description": "Creates a new user with email and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "User input",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/entities.CreateUserInput"
                         }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ID of the created user",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Retrieves a list of all registered users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List all users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.User"
+                            }
                         }
                     }
                 }
@@ -90,16 +163,81 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entities.ShortenedUrl": {
+        "entities.CreateURLInput": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "original_url": {
+                    "type": "string"
+                },
+                "short_code": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.CreateUserInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
+        "entities.URL": {
+            "type": "object",
+            "properties": {
+                "access_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_accessed_at": {
+                    "type": "string"
+                },
+                "original_url": {
+                    "type": "string"
+                },
+                "short_code": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.User": {
             "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
                 },
-                "original": {
+                "email": {
                     "type": "string"
                 },
-                "short": {
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -117,6 +255,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a sample server Petstore server.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

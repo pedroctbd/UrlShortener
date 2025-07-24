@@ -33,8 +33,8 @@ type App struct {
 type Postgres struct {
 	Host         string `envconfig:"DB_HOST"     default:"localhost"`
 	User         string `envconfig:"DB_USER"     default:"postgres"`
-	Password     string `envconfig:"DB_PASSWORD" default:"postgres"`
-	DatabaseName string `envconfig:"DB_NAME"     default:"urlshortner"`
+	Password     string `envconfig:"DB_PASSWORD" default:"admin"`
+	DatabaseName string `envconfig:"DB_NAME"     default:"urlshortener"`
 	Port         string `envconfig:"DB_PORT"     default:"5432"`
 }
 

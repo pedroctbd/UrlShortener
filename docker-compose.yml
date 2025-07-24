@@ -1,10 +1,10 @@
 services:
-  postgresdb:
+  database:
     image: postgres:14
     environment:
+      POSTGRES_DB: urlshortener
       POSTGRES_USER: "${DB_USER}"       
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
-      POSTGRES_DB: "${DB_NAME}"         
     ports:
       - "${DB_PORT}:5432"
     volumes:

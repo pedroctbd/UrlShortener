@@ -2,53 +2,110 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"shorturl.com/entities"
-	"shorturl.com/storage"
 	"shorturl.com/utils"
 )
 
-// CreateUrl godoc
-// @Summary      Create a shortened URL
-// @Description  Accepts a JSON payload to create a new shortened URL
+// CreateURL godoc
+// @Summary      Create a new shortened URL
+// @Description  Takes an original URL and returns a shortened one
 // @Tags         urls
 // @Accept       json
 // @Produce      json
-// @Param        url  body      entities.ShortenedUrl  true  "URL info"
-// @Success      201  {array}   entities.ShortenedUrl
-// @Failure      400  {string}  string  "Invalid request payload"
-// @Failure      500  {string}  string  "Internal server error"
-// @Router       / [post]
+// @Param        input  body      entities.CreateURLInput  true  "URL creation input"
+// @Success      201    {object}  entities.URL
+// @Router       /url [post]
 func CreateUrl(db *sql.DB) http.HandlerFunc {
 
+	query := `
+		INSERT INTO urls (
+			id, short_code, original_url, user_id, created_at, expires_at, access_count, last_accessed_at
+		) VALUES (
+			gen_random_uuid(), $1, $2, $3, NOW(), $4, 0, NULL
+		)
+		RETURNING id
+	`
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 
-		newUrl, err := utils.Decode[entities.ShortenedUrl](r)
+		input, err := utils.Decode[entities.CreateURLInput](r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		storage.CurrentUrls = append(storage.CurrentUrls, newUrl)
+		// Insert into database
+		var newUrlID uuid.UUID
+		err = db.QueryRowContext(ctx, query,
+			input.ShortCode,
+			input.OriginalURL,
+			input.UserId,
+			input.ExpiresAt,
+		).Scan(&newUrlID)
 
-		if err := utils.Encode(w, r, http.StatusCreated, storage.CurrentUrls); err != nil {
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		resp := map[string]interface{}{
+			"id": newUrlID,
+		}
+		if err := utils.Encode(w, r, http.StatusCreated, resp); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 }
 
-// RedirectUrl godoc
-// @Summary      Return existing url shortners
-// @Description  Return existing url shortners
+// ListExistingUrls godoc
+// @Summary      List all shortened URLs
+// @Description  Returns a list of all existing shortened URLs
 // @Tags         urls
-// @Produce      plain
-// @Success      200  "Returns existing shortened urls"
-// @Router       / [get]
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   entities.URL
+// @Router       /urls [get]
 func ListExistingUrls(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		rows, err := db.Query("SELECT * FROM urls")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		urls := []entities.URL{}
+
+		for rows.Next() {
+			var url entities.URL
+
+			err := rows.Scan(
+				&url.ID,
+				&url.ShortCode,
+				&url.OriginalURL,
+				&url.UserID,
+				&url.CreatedAt,
+				&url.ExpiresAt,
+				&url.AccessCount,
+				&url.LastAccessedAt,
+			)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			urls = append(urls, url)
+		}
+
+		if err := utils.Encode(w, r, http.StatusOK, urls); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 
 	}
 }
@@ -59,10 +116,9 @@ func ListExistingUrls(db *sql.DB) http.HandlerFunc {
 // @Tags         urls
 // @Produce      plain
 // @Success      301  "Redirects to original URL"
-// @Router       / [get]
+// @Router       /redirect [get]
 func RedirectUrl() http.HandlerFunc {
 
-	fmt.Println("entered here")
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		//postgres to get original url from db
