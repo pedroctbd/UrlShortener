@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,8 +23,6 @@ func CreateUser(db *sql.DB) http.HandlerFunc {
 	query := `INSERT INTO users (id, email, password_hash, created_at, updated_at)
 	VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
 	RETURNING id;`
-
-	fmt.Println("ENTERED CREATE USER HANDLER")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -66,7 +63,7 @@ func CreateUser(db *sql.DB) http.HandlerFunc {
 // @Tags         users
 // @Produce      json
 // @Success      200  {array}   entities.User
-// @Router       /users [get]
+// @Router       /user/list [get]
 func ListUsers(db *sql.DB) http.HandlerFunc {
 	query := `SELECT * FROM users`
 	return func(w http.ResponseWriter, r *http.Request) {

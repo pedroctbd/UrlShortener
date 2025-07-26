@@ -24,23 +24,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/redirect": {
-            "get": {
-                "description": "Redirects user to the original URL based on the shortened one",
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "urls"
-                ],
-                "summary": "Redirect to original URL",
-                "responses": {
-                    "301": {
-                        "description": "Redirects to original URL"
-                    }
-                }
-            }
-        },
         "/url": {
             "post": {
                 "description": "Takes an original URL and returns a shortened one",
@@ -75,7 +58,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/urls": {
+        "/url/list": {
             "get": {
                 "description": "Returns a list of all existing shortened URLs",
                 "consumes": [
@@ -138,7 +121,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users": {
+        "/user/list": {
             "get": {
                 "description": "Retrieves a list of all registered users",
                 "produces": [
@@ -157,6 +140,23 @@ const docTemplate = `{
                                 "$ref": "#/definitions/entities.User"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/{code}": {
+            "get": {
+                "description": "Redirects user to the original URL based on the shortened one",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "urls"
+                ],
+                "summary": "Redirect to original URL",
+                "responses": {
+                    "301": {
+                        "description": "Redirects to original URL"
                     }
                 }
             }

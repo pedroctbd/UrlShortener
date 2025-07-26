@@ -66,7 +66,7 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /redirect:
+  /{code}:
     get:
       description: Redirects user to the original URL based on the shortened one
       produces:
@@ -99,7 +99,7 @@ paths:
       summary: Create a new shortened URL
       tags:
       - urls
-  /urls:
+  /url/list:
     get:
       consumes:
       - application/json
@@ -140,7 +140,7 @@ paths:
       summary: Create a new user
       tags:
       - users
-  /users:
+  /user/list:
     get:
       description: Retrieves a list of all registered users
       produces:

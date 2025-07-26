@@ -2,12 +2,23 @@ package handlers
 
 import (
 	"database/sql"
+	"math/rand"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"shorturl.com/entities"
 	"shorturl.com/utils"
 )
+
+func generateShortCode(n int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
 
 // CreateURL godoc
 // @Summary      Create a new shortened URL
@@ -36,11 +47,34 @@ func CreateUrl(db *sql.DB) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		newShortCode := input.ShortCode
+		//if code is empty or less than 8, generate random code
+		if len(input.ShortCode) <= 7 || input.ShortCode == "" {
+
+			for {
+				newShortCode = generateShortCode(8)
+				var exists bool
+
+				err := db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM urls WHERE short_code = $1)", newShortCode).Scan(&exists)
+
+				if err != nil {
+
+					http.Error(w, "Error validating short code", http.StatusInternalServerError)
+					return
+				}
+
+				if !exists {
+
+					break
+				}
+			}
+
+		}
 
 		// Insert into database
 		var newUrlID uuid.UUID
 		err = db.QueryRowContext(ctx, query,
-			input.ShortCode,
+			newShortCode,
 			input.OriginalURL,
 			input.UserId,
 			input.ExpiresAt,
@@ -68,7 +102,7 @@ func CreateUrl(db *sql.DB) http.HandlerFunc {
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}   entities.URL
-// @Router       /urls [get]
+// @Router       /url/list [get]
 func ListExistingUrls(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -116,13 +150,26 @@ func ListExistingUrls(db *sql.DB) http.HandlerFunc {
 // @Tags         urls
 // @Produce      plain
 // @Success      301  "Redirects to original URL"
-// @Router       /redirect [get]
-func RedirectUrl() http.HandlerFunc {
-
+// @Router       /{code} [get]
+func RedirectUrl(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		code := chi.URLParam(r, "code")
+
+		var originalURL string
+		query := `SELECT original_url FROM urls WHERE short_code = $1`
+		err := db.QueryRowContext(ctx, query, code).Scan(&originalURL)
+
+		if err == sql.ErrNoRows {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		//postgres to get original url from db
-		http.Redirect(w, r, "https://youtube.com", http.StatusPermanentRedirect)
+		http.Redirect(w, r, originalURL, http.StatusPermanentRedirect)
 
 	}
 }

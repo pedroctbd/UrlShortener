@@ -35,12 +35,16 @@ func addRoutes(r chi.Router, db *sql.DB) {
 
 	r.Get("/swagger/*", httpSwagger.Handler())
 
-	r.Post("/url", handlers.CreateUrl(db))
-	r.Get("/redirect", handlers.RedirectUrl())
-	r.Get("/urls", handlers.ListExistingUrls(db))
+	r.Route("/url", func(r chi.Router) {
+		r.Post("/", handlers.CreateUrl(db))
+		r.Get("/list", handlers.ListExistingUrls(db))
+	})
+	r.Get("/{code}", handlers.RedirectUrl(db))
 
-	r.Get("/users", handlers.ListUsers(db))
-	r.Post("/user", handlers.CreateUser(db))
+	r.Route("/user", func(r chi.Router) {
+		r.Post("/", handlers.CreateUser(db))
+		r.Get("/list", handlers.ListUsers(db))
+	})
 
 }
 
