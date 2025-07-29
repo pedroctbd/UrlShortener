@@ -172,7 +172,7 @@ func RedirectUrl(db *sql.DB) http.HandlerFunc {
 		//updates access_count
 		go func() {
 
-			_, err := db.ExecContext(ctx, `UPDATE urls SET access_count = access_count + 1 WHERE short_code = $i`, code)
+			_, err := db.ExecContext(ctx, `UPDATE urls SET access_count = access_count + 1 WHERE short_code = $1`, code)
 
 			if err != nil {
 				log.Printf("Error updating access count: %v", err)
