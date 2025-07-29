@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"math/rand"
 	"net/http"
 
@@ -167,6 +168,16 @@ func RedirectUrl(db *sql.DB) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		//updates access_count
+		go func() {
+
+			_, err := db.ExecContext(ctx, `UPDATE urls SET access_count = access_count + 1 WHERE short_code = $i`, code)
+
+			if err != nil {
+				log.Printf("Error updating access count: %v", err)
+			}
+		}()
 
 		//postgres to get original url from db
 		http.Redirect(w, r, originalURL, http.StatusPermanentRedirect)
