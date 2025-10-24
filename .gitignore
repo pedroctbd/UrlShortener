@@ -1,22 +1,18 @@
-# Binaries
-/bin/
-/build/
+# ######################################
+# # General & OS
+# ######################################
 
-# Vendor directory (if vendoring dependencies)
-/vendor/
+# OS-generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
 
-# Go modules cache
-/go.sum
-/go.mod
-
-# IDE/editor files
+# IDE & Editor files
 .vscode/
 .idea/
 *.iml
-
-# OS files
-.DS_Store
-Thumbs.db
+*.swp
+*~
 
 # Logs and temporary files
 *.log
@@ -25,27 +21,55 @@ Thumbs.db
 
 # Environment variables file
 .env
+.env.*
+!.env.example
 
-# Docker volumes and containers (optional, usually not tracked)
-docker-compose.override.yml
+# ######################################
+# # Go
+# ######################################
 
-# Compiled files (optional)
-/*.exe
-/*.exe~
-/*.dll
-/*.so
-/*.dylib
+# Compiled binaries
+/bin/
+/build/
+app
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Coverage reports
+# Vendor directory
+/vendor/
+
+# Go modules (It's common to COMMIT go.mod and go.sum)
+# You have these ignored, but most projects track them.
+# Remove these lines if you want to track dependencies.
+# /go.sum
+# /go.mod
+
+# Test reports
 *.out
-
-# Test results
 test_results/
 
-# Miscellaneous
-*.swp
-*~
+# ######################################
+# # Angular / Node.js
+# ######################################
 
-# If you build binaries here
-app
+# Node.js dependencies
+/node_modules/
 
+# Angular build output
+/dist/
+/www/
+/platforms/
+/plugins/
+
+# Angular cache
+/.angular/cache/
+
+# Test coverage
+/coverage/
+
+# Package manager logs
+npm-debug.log*
+yarn-error.log*

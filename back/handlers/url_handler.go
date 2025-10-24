@@ -65,7 +65,6 @@ func CreateUrl(db *sql.DB) http.HandlerFunc {
 				}
 
 				if !exists {
-
 					break
 				}
 			}
@@ -158,7 +157,7 @@ func RedirectUrl(db *sql.DB) http.HandlerFunc {
 		code := chi.URLParam(r, "code")
 
 		var originalURL string
-		query := `SELECT original_url FROM urls WHERE short_code = $1`
+		query := `SELECT original_url FROM urls WHERE short_code = $1 AND expires_at >= NOW()`
 		err := db.QueryRowContext(ctx, query, code).Scan(&originalURL)
 
 		if err == sql.ErrNoRows {
