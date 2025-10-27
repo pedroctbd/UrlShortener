@@ -31,7 +31,6 @@ ehthumbs.db
 # Compiled binaries
 /bin/
 /build/
-app
 *.exe
 *.exe~
 *.dll
